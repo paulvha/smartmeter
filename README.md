@@ -1,7 +1,8 @@
-﻿ Smartmeter             Version 3.0             Ocotber 2019
+﻿# Smartmeter
 
+Version 3.0, October 2019
 
-Utilities to read the Dutch Smartmeter with Raspberry Pi written in Python
+Utilities to read the Dutch Smartmeter with Raspberry Pi written in Python.
 
 These are all command-line utilities without graphical interface to allow for fast remote access and background usage.
 
@@ -13,26 +14,25 @@ While this version works good, development to extend and bug-fixing is still hap
 
 The following information is available after installation:
 ### installation support
-add_initd     =  used during installation to update /etc/init.d
-setupsm.sh    =  install or remove running programming
-install.txt   =  instructions for installation and setup
-hardware.txt  =  detailed information around the hardware
-meter.txt     =  overview of potential OBIS codes
-onedrive.txt  =  install onedrive correctly for smartmeter
+<br>add_initd     =  used during installation to update /etc/init.d
+<br>setupsm.sh    =  install or remove running programming
+<br>install.txt   =  instructions for installation and setup
+<br>hardware.txt  =  detailed information around the hardware
+<br>meter.txt     =  overview of potential OBIS codes
+<br>onedrive.txt  =  install onedrive correctly for smartmeter
 
 ### running programs
-svlogfile_od  =  save log-files to OneDrive
-svlogfile     =  save log-file to local network share
-smread.py     =  let user to interactive display and save information from smartmeter
-smrdback.py   =  program to capture smartmeter output in the background
-obislct.py    =  let user select specific data to save in log filename
-sm_command    =  program to start other Python program
-onedrive.service = for system wide constant update of onedrive
+<br>svlogfile_od  =  save log-files to OneDrive
+<br>svlogfile     =  save log-file to local network share
+<br>smread.py     =  let user to interactive display and save information from smartmeter
+<br>smrdback.py   =  program to capture smartmeter output in the background
+<br>obislct.py    =  let user select specific data to save in log filename
+<br>sm_command    =  program to start other Python program
+<br>onedrive.service = for system wide constant update of onedrive
 
 ### Other documentation
-uninstall.txt =  instructions to de-install and remove software
-program.txt   =  detailed information around software
-
+<br>uninstall.txt =  instructions to de-install and remove software
+<br>program.txt   =  detailed information around software
 
 ## Motivation
 
@@ -68,9 +68,9 @@ All programs are stored in smartmeter directory, written in python 2.7 and suppo
 The central routines to obtain information from the smartmeter are stored in a Class Smeter.
 
 There are 3 user level programs :
-  To read and store the information interactive : smread
-  To select the data to be stored by smrdback   : obislct
-  Background program (eg. to run from crontab)  : smrdback
+- To read and store the information interactive : smread
+- To select the data to be stored by smrdback   : obislct
+- Background program (eg. to run from crontab)  : smrdback
 
 The commands will be created in /usr/local/bin if the procedure in install.txt is followed correctly
 
@@ -107,8 +107,8 @@ more powerful analytical systems and tools (eg. with Microsoft office tools)
  - changed default device (/dev/ttyUSB0) and pin (26)
 
 ## What is the reference environment?
-You will need at least 1GB for the onedrive compile
-The program is tested on Raspberry Pi with Raspbian/Debian/ jessie
+You will need at least 1GB for the onedrive compile.
+<br>The program is tested on Raspberry Pi with Raspbian/Debian/ jessie
 
 ## Contact
 
