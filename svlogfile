@@ -1,0 +1,161 @@
+#! /bin/bash
+
+#****************************************************************
+# save the Smartreader logfile to a network share
+#
+# version 2.0 / September 2015 / paulvh
+# initial version
+#
+# version 2.1 / December 2015 / paulvh
+# detect SmDirectory automatically and search for share
+#
+# version 2.11 / January 2016 / paulvh
+# - added commandline option for search
+#
+# !!!!! ACTIONS BEFORE THIS CAN WORK CORRECTLY (see install.txt) !!!!!!
+#
+# Add to crontab for regular saving
+#
+# OPTIONAL
+# Provide SEARCH argument for the share on the command line if not "smartmeter"
+#
+# A log file is (re)created each run (see _CronLog)
+#
+#****************************************************************
+
+# mount information
+_MountDirectory=""
+_MountSearch="smartmeter"
+
+# Smartmeter directory
+_SmDirectory=`dirname $0`
+
+# lock file during save
+_TempLockFile="LogLock"
+
+# Store last save in seconds
+_LastLogFile="LastSave"
+
+# log for progress and errors
+_CronLog="cronlog"
+
+#****************************************************************
+# if different search argument provided
+if [ "$#" -eq 1 ]; then
+    _MountSearch=$1
+fi
+
+# go to smartmeter directory
+cd $_SmDirectory/logs
+
+# clear log file
+date > $_CronLog
+
+# Check whether share has been mounted
+_count=1
+
+while [ $_count -le 5 ]
+do
+    _MountDirectory=`mount | grep "$_MountSearch" | awk '{ print $3 }'`
+
+    if [ ! -z  $_MountDirectory ]; then
+        echo "Mount was detected." >> $_CronLog
+        (( _count=7 ))
+    else
+        # try to mount
+        echo "Not mounted. Trying to mount" >> $_CronLog
+        mount -a  >> $_CronLog
+        (( _count++ ))
+    fi
+done
+
+# if network share is NOT mounted
+if [ $_count = 6 ]; then
+    echo "Network share could not find share with $_MountSearch in name" >> $_CronLog
+    exit 1
+fi
+
+# Check max 5 times if lock file exists
+# lock file is active during writing and reading to the log file
+# wait 5 seconds in between checks.
+_count=1
+
+while [ $_count -le 5 ]
+do
+    if [ -f $_TempLockFile ]; then
+        echo "Attempt : $_count. Waiting 5 seconds for lock file." >> $_CronLog
+        sleep 5
+        (( _count++ ))
+
+    else
+        touch $_TempLockFile >/dev/null
+
+        if [ $? = 0 ]; then
+            echo "Created lock file." >> $_CronLog
+            (( _count=7 ))
+        else
+            (( _count++ ))
+        fi
+    fi
+done
+
+# if lock file count not be created
+if [ $_count = 6 ]; then
+    echo "$_TempLockFile file prevents copying. Content is : " >> $_CronLog
+    cat $_TempLockFile  >> $_CronLog
+    echo "Maybe the lock file needs to be removed manually. " >> $_CronLog
+    exit 1
+fi
+
+# Add info in lock file (for diagnostics later only)
+echo "Created to copy to network share." > $_TempLockFile
+date >> $_TempLockFile
+
+# determine which log file(s) to copy
+# First check if there was an earlier copy done
+
+if [ -f $_LastLogFile ]; then
+        # get the time in seconds of earlier copy
+        LastUpdate=`stat -c %Y $_LastLogFile`
+else
+        # set to save all log files to the network share
+        LastUpdate=0
+        MustCopy=1
+        echo "First time saving." >> $_CronLog
+fi
+
+# Determine which SML* was modified since and copy that file
+for ff in SML*
+do
+    # Check if this file modified after the last copy
+    if [ $LastUpdate != 0 ]; then
+        MustCopy=$((`stat -c %Y $ff` - $LastUpdate))
+    fi
+
+    # Only copy files that need to be copied
+    if [ $MustCopy -gt 0 ]; then
+
+        cp $ff $_MountDirectory/$ff.txt
+
+        if [ $? = 0 ]; then
+
+            echo "Copied $ff to $_MountDirectory/$ff.txt " >> $_CronLog
+        else
+            echo "FAILED to copy $ff to $_MountDirectory " >> $_CronLog
+        fi
+    else
+        echo "Skipping $ff." >> $_CronLog
+    fi
+done
+
+# Store the last update done on the file
+touch $_LastLogFile
+echo "The modification date of this file is used to determine which log files to copy to the networkshare." > $_LastLogFile
+echo "If removed all log files will be copied and file is recreated." >> $_LastLogFile
+echo "Updated modification time on $_LastLogFile." >> $_CronLog
+
+# remove lock file
+echo "Delete lock file" >> $_CronLog
+rm -f $_TempLockFile
+
+exit 0

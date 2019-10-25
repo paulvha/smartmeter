@@ -1,0 +1,18 @@
+# Contains OBIS codes to be selected
+# include the OBIS code for the information that need to be saved.
+# use OBIS documentation in P1 or P3 companion standard
+# Description is free text and is not used elsewhere.
+# This file can be updated with text editor or obislct.py util
+# code1:code2:code3:code4:code5:description
+# The OBIS code for meter timestamp (0-0:1.0.0) is hard coded to be# added by default.
+
+1-0:1.7.0[ current energy usage
+0-1:24.2.1[ Total received gas
+1-0:1.8.1[ Total energy received tariff 1
+1-0:2.8.1[ Total Energy returned tariff 1  ( e.g. in case of solar panels)
+1-0:1.8.2[ Total energy received tariff 2
+1-0:2.8.2[ Total Energy returned tariff 2  ( e.g. in case of solar panels)
+1-0:21.7.0[ fase 1]
+1-0:41.7.0[ fase 2]
+1-0:61.7.0[ fase 3]
+

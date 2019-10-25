@@ -1,0 +1,58 @@
+﻿                     uninstall smartmeter software      May 2017
+
+The following description assumes the smartmeter programs are located in
+/home/pi/smartmeter.
+
+     ----------- All STEPS MUST BE PERFORMED AS SUPER USER ------------
+
+
+1. Remove the background program
+
+  systemctl stop sm.start
+  updaterc.d -f sm.start remove
+
+
+2. Remove the installed utilities
+
+   cd /home/pi/smartmeter   (home directory where smartmeter is installed)
+
+  ./setupsm.sh remove
+
+  This will remove the installed utilities from /usr/local/bin
+
+3.Remove automatically saving the logfiles on-line
+
+  Choose either OneDrive (3A) or local network share (3B), depending on
+  the option used during installation
+
+  3A. Remove saving to Onedrive
+
+  UPDATE CRONTAB
+   'crontab -e' will start the nano editor.
+
+   Remove an entry like this will start svlogfile_od every hour:
+   0 * * * *    /home/pi/smartmeter/svlogfile_od
+
+   press "ctrl+o" to writeout, press enter for filename, 'ctrl+x' to exit
+
+  3B. Removing saving to local network share
+
+  UPDATE CRONTAB
+   'crontab -e' will start the nano editor.
+
+   Remove an entry like this will start svlogfile every hour:
+   0 * * * *    /home/pi/smartmeter/svlogfile
+
+   press "ctrl+o" to writeout, press enter for filename, 'ctrl+x' to exit
+
+4. Reboot the system
+     reboot
+
+5. Remove smartmeter programs and all logs. (as superuser)
+
+    cd /home/pi             (go to parent directory)
+
+    rm -rf smartmeter
+
+6. OneDrive
+   In case you want to remove, follow the instructions in onedrive.txt

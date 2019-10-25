@@ -1,0 +1,98 @@
+install new onedrive for smartmeter on Raspberry Pi
+
+FROM
+https://github.com/abraunegg/onedrive/
+
+Raspberry Pi: (need to have 1GB memory at least !!!)
+
+ ############## DEPENDENCIES  ###########
+
+Dependencies: Raspbian (ARMHF)
+cd ~	#go to your home directory
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install libsqlite3-dev
+sudo apt-get install libxml2
+sudo apt-get install pkg-config
+wget https://github.com/ldc-developers/ldc/releases/download/v1.16.0/ldc2-1.16.0-linux-armhf.tar.xz
+tar -xvf ldc2-1.16.0-linux-armhf.tar.xz
+
+For notifications the following is necessary: 
+
+(only needed if you plan to compile with notification see the README on the github. I have not used 
+that)
+
+sudo apt install libnotify-dev
+
+ ############## COMPILE ###########
+
+Raspberry Pi:
+
+cd ~	# go to your home directory
+
+git clone https://github.com/abraunegg/onedrive.git
+cd onedrive
+./configure DC=~/ldc2-1.16.0-linux-armhf/bin/ldmd2
+make clean; make        # this will take a couple of minutes
+sudo make install
+
+ ############## configuration ##########
+mkdir -p ~/.config/onedrive
+cd ~/onedrive
+cp ./config ~/.config/onedrive/config
+
+To edit the config file :  nano ~/.config/onedrive/config
+Note: no changes needed to this config file, but read Readme documentation for more information
+
+enable selective sync :  create a file named 'sync_list' in ~/.config/onedrive with one line : smartmeter
+Note: after changing the sync_list, you must perform a full synchronization by executing :  onedrive --resync --synchronize
+
+ ############## First run  ##############
+After installing the application you must run it at least once from the terminal to authorize it.
+
+You will be asked to open a specific link using your web browser where you will have to login into your
+Microsoft Account and give the application the permission to access your files. After giving the permission,
+you will be redirected to a blank page. Copy the URI of the blank page into the application.
+
+Easiest to do this with a ssh connection from a PC and use the browser on the PC.
+
+ ###########  automatic start ###########
+
+OneDrive service running as root user via systemd
+
+The onedrive.service has been adjusted to work systemwide
+
+cp onedrive.service /usr/lib/systemd/system
+
+sudo systemctl enable onedrive
+sudo systemctl start onedrive
+
+ ###########   Uninstall  OneDrive ###########
+
+sudo make uninstall
+# delete the application state
+rm -rf ~/.config/onedrive
+
+sudo systemctl stop onedrive
+sudo systemctl disable onedrive
+sudo rm -rf /usr/lib/systemd/system/onedrive.service
+
+If you want to just delete the application key, but keep the items database:
+rm -rf ~/.config/onedrive/refresh_token
+
+If you want to remove downloaded OneDrive content
+rm -rf ~/OneDrive
+
+ ###########   usage ###########
+
+onedrive --display-config   # display configuration
+
+When running onedrive all actions can be logged to a separate log file.
+This can be enabled by using the --enable-logging flag.
+By default, log files will be written to /var/log/onedrive/
+
+More information in the onedrive README.md
+
+

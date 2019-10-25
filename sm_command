@@ -1,0 +1,19 @@
+#!/bin/bash
+# version 1.0 / paulvha / january 2016
+# passing from shell to smartmeter python utilities
+# created with setupsm.sh
+
+# smartmeter directory
+smartmeter_dir=/home/pi/smartmeter
+
+# goto the SmartMeter directory
+cd $smartmeter_dir
+
+# remove pathname
+name=` basename $0 `
+
+# create the full pathname to the command
+od_com=$smartmeter_dir/$name".py"
+
+# start the utility with the parameters
+/usr/bin/python $od_com "$@" 

@@ -1,0 +1,557 @@
+﻿          SMARTMETER PROGRAM INFORMATION
+
+initial created January 2016
+updated October 2019 / paulvh / version 3.0
+
+This package contains the software to read a smartmeter. This
+overview contains information software and usage.
+
+Make sure to read hardware.txt as the right connection is
+critical to the success of the project.
+
+After that read the install.txt for proper installation of the software
+
+The following files can be found the smartmeter directory.
+
+add_initd
+This is a shell program to update /etc/init.d with the right
+information to start background process (smrdback.py) after a reboot
+with systemd.
+
+svlogfile_od (added with 2.1)
+This is a shell program that can be run automatically through crontab
+or started manually. It will try to save the updated logfiles (or all
+log files if run for the first time) to OneDrive. Make sure to
+read the install.txt for actions to be done before running.
+
+svlogfile
+This is a shell program that can be run automatically through crontab
+or started manually. It will try to save the updated logfiles (or all
+log files if run for the first time) to a network share. Make sure to
+read the install.txt for actions to be done before running as it needs
+parameter setting.
+
+obislct.py
+This is a python program that enables the user to only select specific
+data from the smartmeter to be stored in the logs. This will keep the
+log file smaller and easier to import into further programs.
+It can take the following parameters:
+        -v, --version   : Display version number
+        -l, --language  : Language to use, 'nl' or 'uk'
+        -q, --quiet     : No message is displayed
+
+
+smread.py
+This is a python program that allows a user to display and/or store the
+smartmeter information in an interactive way.
+It can take the following parameters:
+        -v, --version   : Display version number
+        -l, --language  : Language to use, 'nl' or 'uk'
+        -o, --output    : do NOT add OBIS code to SML file
+        -D, --device    : change device from /dev/ttyAMA0
+        -G, --gpio          : change gpio-pin from GPIO4
+
+smrdback.py
+This is a python program that is planned to run in the background
+(ideally started from /etc/init.d) but it can be run manual as well
+to store the smartmeter data in a log file.
+It can take the following parameters:
+        -s, --save      : 1 == selection only, 2 ==full information
+        -v, --version   : Display version number
+        -l, --language  : Language to use, 'nl' or 'uk'
+        -q, --quiet     : No message is displayed
+        -d, --display   : Display info read from meter (no saving to file)
+        -i, --interval  : # of seconds between samples. (=> 10 seconds)
+        -r, --repeat    : # of samples to take. default=0 (endless)
+        -o, --output    : do NOT add OBIS code to SML file
+        -D, --device    : change device from /dev/ttyAMA0
+        -G, --gpio              : change gpio-pin from GPIO4
+        -O, --domo              : create file needed for Domoticz
+
+different .txt files
+These are text files with different information.
+
+smartprog
+---------
+This is a directory that contains the code for the common subroutines to
+connect, reading to the smartmeter, displaying and reading and writing
+the different log files.
+
+        __init__.py
+set to import the contents of smprog.py and dsmm.py into the calling program.
+
+        smprog.py
+This is a python file that contains the supporting routines to read,
+select or save data into the SML-log file. The routines are called from
+either smread.py, smrdback.py or obislct.py.
+
+        dsmm.py
+This is a python file for easy localisation of the display messages
+coming from Obislct.py, smprog.py, smrdback.py or smread.py.
+Dutch and English messages are supported, but other languages can be
+added easily.
+
+
+logs
+----
+This is a directory that will contain data and logs files used.
+The following files can be found in logs:
+
+        SML3MmmYYYY
+These files are text files that contain the data from the smartmeter.
+There is a log file created for each month of the year.
+The filename format is:
+SML3MmmYYYY      where Mmm = month, YYYY = year. (e.g. SML3Oct2019)
+Note : before October 2019 it has the header SML
+
+        RAWMmmYYYY
+These files are text files that contain the RAW data from the
+smartmeter as requested with smread.py option 4. There is a log
+file created for each month of the year.
+The filename format is:
+RAWMmmYYYY      where Mmm = month, YYYY = year. (e.g. RAWSep2015)
+
+        ObisSelected
+This is a text file that is created with obislct.py. it contains the
+information of the smartmeter data entries to be stored in the log
+files (if selection is requested).
+
+        cronlog
+This is a text file that is created by svlogfile. It is created
+each time that utility is run and store the progress or error messages.
+It can be used for diagnostics.
+
+        errlog
+This is a text file that is contains the messages from smrdback.py
+It is started in /etc/init.d. It can be used for diagnostics.
+
+        LogLock
+This is a text file that is should only be present during reading or
+writing data from a log file. It prevents reading and writing at the
+same moment. It is created by either the save-routine in smprog.py or
+svlogfile. It will contain the information on which program had created
+the lock file. It should not be present for the longer time (> 30 seconds).
+In that case: Read the content to analyse or it can be deleted.
+
+        LastSave
+This is a text file that is used during svlogfile. The modification
+time on the file will be used to store the last time a copy to the
+network share has been completed successfully. It is used to select
+and copy the log files have been changed since last run. If the file
+does not exists all the log files will be copied and the file will be
+(re)created.
+
+******************* Description of programs *****************************
+
+svlogfile_od (added with 2.1)
+---------
+This utility is expected to run on regular base as it will copy SML3-
+Logs files from smartmeter log directory to OneDrive/smartmeter.
+It could be hourly, but advised is at least daily.
+
+If will try to create a LogLock file, however if that file already
+exists it will wait for 5 seconds and try again for a maximum
+of 5 times. If not successful in creating the program will terminate.
+It will now determine the last time a copy was done by reading the
+modification date of LastSave file. If that file does not exists all
+SML3-log files will tried to be copied. As next step it will check for
+all the SML3-log files and only those that have changed since last time
+will be copied.
+As clean-up action the modification date on lastSave will be reset and
+the LogLock removed.
+
+A text log (cronlog) is created for diagnostics in the logs directory.
+
+
+svlogfile
+---------
+This utility is expected to run on regular base as it will copy SML3-
+Logs files from smartmeter log directory to a local NETWORK SHARE.
+Depending on your network share availability, it could be hourly,
+advised is at least daily.
+
+This utility will check whether the network share is mounted, if not
+it will try 5 times to mount. If the share cannot be mounted, the
+utility is terminated.
+If will now try to create a LogLock file, however if that file
+already exists it will wait for 5 seconds and try again for a maximum
+of 5 times. If not successful in creating the program will terminate.
+It will now determine the last time a copy was done by reading the
+modification date of LastSave file. If that file does not exists all
+SML-log files will tried to be copied. As next step it will check for
+all the SML-log files and only those that have changed since last time
+will be copied.
+As clean-up action the modification date on lastSave will be reset and
+the LogLock removed.
+
+A text log (cronlog) is created for diagnostics in the logs directory.
+
+
+obislct.py
+----------
+This python program is creating input selection file for smread.py,
+smrdback.py and smprog.py. It is expected to be used regular in the
+beginning to set the right selection.
+
+To start:  /usr/bin/python obislct.py
+
+Default values:
+        -v, --version   : not set
+        -l, --language  : 'nl'
+        -q, --quiet     : Messages are displayed
+
+The output is stored in ObisSelected located in logs-directory.
+The format of this file is:
+        Any line starting with # are comments only
+
+        OBIS lines > code1-code2:code3.code4.code5[ description
+        Each code MUST be digit, description is optional and only for FYI
+        e.g. 1-0:1.8.1[ Electricity tariff 1
+
+
+For a full list of OBIS codes search online (see reference material).
+
+The smartmeter normally does not support all the codes on the P1 port.
+Use smread.py (select option 3) to see them all from your smartmeter.
+The netbeheer documents (see reference material) is a good source or meter.txt
+
+This utility will first try to read an existing ObisSelected file.
+Any comment lines are skipped. Each valid OBIS line from the file
+it is displayed and asked whether to keep or not. This is done to save
+time to re-enter all the information again.  If the answer is
+N (no) a double-check question is displayed: are you sure ?. This has
+to be answered with Y(yes). This is done to prevent errors. If the file
+does not exist or is empty the program will skip this and continue to
+take new input.
+
+After all the existing OBIS lines have been checked, new input can be
+added. The program asks for the OBIS code. Enter the 5 new OBIS codes,
+each separated by a space and press <enter>. If only <enter> then
+the input stops. If the OBIS codes are all digits, the program will
+ask for optional description to be added, but is not used elsewhere.
+(delimiters are automatically added)
+
+After the input the full new list (existing that were kept + new input)
+is displayed. S (save) will save the new list to ObisSelected,
+C (change) will allow for changes to the new list, e(exit) will
+terminate the program.
+
+NOTE :
+ The obis code for meter timestamp (0-0:1.0.0) is automatically added
+ in smprog.py to enable correct usage of the information in the logfile.
+
+smread.py
+---------
+This python program reads, displays and store Smartmeter information
+interactive. It is used in the beginning to validate the connection
+and understand what kind of information can be sent by the smartmeter.
+It can be used to read the current status on a specific moment.
+
+To start:  /usr/bin/python smread.py
+
+It must be started in the smartmeter directory and as ROOT
+
+                          Default values:
+        -v, --version   : not set
+        -l, --language  : 'nl'
+        -o, --output    : not set : Add OBIS code to SML3 file
+        -D, --device    : /dev/ttyUSB0
+        -G, --gpio      : 26
+
+
+Default serial port is /dev/ttyUSB0, but this can be changed with the
+-D option e.g. to /dev/ttyAMA0 incase of USB/serial cable (PL2303).
+The default GPIO-pin is GPIO26, but this can be changed with the -G
+option to another pin.
+
+The program will initialize GPIO for RTS (Request to Sent) and set
+the serial line to 115200, 8N1. These are necessary for communication
+with the smartmeter. (See the hardware section for cable).
+The selection is displayed and the program will now start a loop where
+it checks for either keyboard or smartmeter input.
+If keyboard input is 2, RTS is removed and buffers/counters reset. If
+keyboard input is 6, the RTS is removed, GPIO cleared and exit. If
+either option 1,3,4 or 5 is requested, RTS is raised and all the
+information is read into a buffer. If all the information has been
+received a CRC check is performed and RTS removed.
+
+If CRC is NOT correct, the received data is displayed only for
+diagnostics, buffers and counters reset.
+The connection is guarded with a buffer overrun and timeout. If
+either is triggered same display is happening + error message.
+As the information is received correctly the data is now processed.
+If keyboard input was 3: The received data is displayed only.
+If input was 4, all received data is displayed and saved to RAW-log.
+If input was 5, if the file "/tmp/meterinput" does not exist, it
+will be created with the current information read from the SmartMeter.
+This file is read & deleted with the domo_update() utility.
+
+If input was 1, the received data is matched against the requested
+OBIS codes from the ObisSelected file in the logs directory. The
+detected matches includes the meter timestamp and are stored in the
+SML-log file.
+Now the buffers and counters are reset and the loop continues until
+either option 6 is selected or ctrl-C is pressed.
+
+NOTES:
+ As the utility starts there could be a GPIO error. This is
+ because a program has not released GPIO correctly. Unless a conflict
+ with other program is suspected, this can be neglected.
+ There could also be a timeout error. This can happen as the cable has
+ picked up noise (especially if long cable). If persistent, check the
+ hardware.
+
+smrdback.py
+-----------
+This python program reads and store Smartmeter information. It is used
+to run regular in the background (see svlogfile). It can be used to
+display the current information and repeat 2 times :
+/usr/bin/python ./smrdback.py -d -r 2
+
+                        Default values:
+        -s, --save      : 1 = selection only
+        -v, --version   : not set
+        -l, --language  : 'nl'
+        -q, --quiet     : not set :Messages are displayed
+        -d, --display   : not set
+        -i, --interval  : 60 seconds
+        -r, --repeat    : default=0 (endless)
+        -o, --output    : not set : Add OBIS code to SML file
+        -D, --device    : /dev/ttyUSB0
+        -G, --gpio      : 26
+        -O, --domo      : not set
+
+It must be started in the smartmeter directory and as ROOT
+
+Error & progress messages will displayed to stderr and so they can be
+redirected separately.
+
+Default serial port is /dev/ttyUSB0, but this can be changed with the
+-D option e.g. to /dev/ttyUSB1 in case of USB/serial cable (PL2303).
+The default GPIO-pin is GPIO26, but this can be changed with the -G
+option to another pin.
+The program will initialize GPIO for RTS (Request To Sent) and set
+the serial line to 115200, 8N1. These are necessary for communication
+with the smartmeter. (See the hardware section for cable). RTS is
+raised and the program will now start a loop where it checks for
+smartmeter input.
+All the information is read into a buffer. If all the information has
+been received a CRC check is performed and RTS removed.
+If CRC is NOT correct, depending on -q option, the received data is
+displayed only for diagnostics and buffers and counters reset.
+The connection is guarded with a buffer overrun and timeout. If
+either is triggered same display is happening (depending -q option)
++ error message.
+
+As the information is received correctly, the data is processed.
+if -d option was requested, the buffer is only displayed and not saved.
+
+Otherwise, depending on the -s option. If s=2 ALL data was requested:
+the received data includes the meter timestamp and saved to RAW-log.
+
+If s = 1 (selection only -default) the received data is matched against
+the requested OBIS codes from the ObisSelected file in the logs
+directory. The detected matches includes the meter timestamp and
+stored in the SML-log file.
+
+Now the buffers and counters are reset. The repeat count is checked
+and if set (with -r option) to a number larger than 0
+(0 = endless -default), the loop is repeated  as long as the count
+has not been reached  after a delay of at least 10 seconds.
+This delay can be increased with -i option, but NOT reduced below
+10 seconds due to smartmeter  restrictions.(update output information
+only every 10 seconds).
+
+NOTES:
+ As the utility starts there could be a GPIO error. This is
+ because a program has not released GPIO correctly. Unless a conflict
+ with other program is possible, this can be neglected.
+ There could also be a timeout error. This can happen as the cable has
+ picked up noise (especially if long cable). If persistent, check the
+ hardware.
+
+
+*********************** Supporting programs ************************
+
+smprog.py
+---------
+This python program contains as class Smeter with supporting routines
+for smread.py, smrdback.py or Obislct.py. This is a description of the
+different methods.
+
+ init (SETIO, device, GPIO)
+  Needs to be called first to setup the class. It will set variables.
+  if SETIO = 1, it will also inititialize GPIO and serial. This has been
+  added as OBislct makes use of some methods, but does not need GPIO nor
+  serial.
+  device is optional, default is /dev/ttyUSB0. GPIO is optional, default
+  is GPIO-26.
+
+ skipobis()
+  When called, no OBIS code is added when writting SML3* log file. This
+  will reduce the number of bytes in the log file and can enable easier
+  parsing of the data.
+
+ setsilent(silent)
+  Will enable to display (silent=1) or disable (silent=0) error and/or
+  progress messages.
+
+ checkser()
+  Will return value if any data pending in the buffer of the serial
+  connection.
+
+ readser()
+  Will return data in the buffer of the serial connection.
+
+ flushser()
+  Will flush data pending in the buffer of the serial connection.
+
+ addmeter(ch)
+  Will add character 'ch' in the meterbuffer (=read buffer from meter)
+
+ checkBO()
+  Will check whether the write counter has exceeded maximum treshold and
+  return(1) if that is the case, otherwise return(0)
+
+ getmbuf()
+  Will return the current information in the meterbuffer.
+
+ gwcount()
+  Will return the current write position in the meterbuffer.
+
+ grcount()
+  Will return the current read position in the meterbuffer.
+
+ gobissel()
+  Will return parsed requested selection as read from OBISFILE
+
+ set_rts(cmd)
+  Will either set of clear RTS depending on the cmd.
+
+ checkTO()
+  Will check whether the timeout counter has exceeded maximum treshold
+  and return(1) if that is the case, otherwise return(0)
+
+ do_crc_check(data,count)
+  Will perform CRC-16 check. Data is a received CRC-byte, count is the
+  Previous returned CRC byte counter.
+  return == 1, 2, 3 or 4 as the count of CRC digits (data)
+  return == 5 as all CRC bits have been received and CRC is correct
+  return == 6 CRC check failed
+
+ read_obis_file()
+  Read the information from the selection file in a buffer.
+  Return codes:
+        0 = successful
+        1 = empty or not existent OBIS selection file
+        2 = Error during opening or reading OBIS selection file
+
+ fill_obis_tbl(comments)
+  Parse the information that has been read by ReadObisInfo() from the
+  buffer into a table to use later to compare against information
+  received from the meter in detect_obis_codes().
+  If optional parameter 'comments' is False (default if omitted) only
+  OBIS codes are extracted, if TRUE OBIS comments will be included.
+
+ detect_obis_codes()
+  Will match the information received from the smartmeter against
+  the requested OBIS codes in selection file. The OBIS code for the
+  meter timestamp is included for selection as well. It will call
+  read_obis_file() and FillObisTable(). If there is a match
+  the information will be added with OutputLine().
+
+ output_line(line)
+  If there is a match in detect_obis_codes() this routine will store the
+  information in save_buffer
+
+ save_info()
+  This routine will save the information to an SML-log or RAW-log file.
+  It will add the month and year to the log filename.
+  Before saving it will create the lock file, save the information and
+  after that remove the lock file.
+
+ reset_cntrs()
+  Reset a number of counters and pointers.
+
+ close_meter()
+  Clean up at the end of program
+
+NOTE :
+ In the header of smprog.py there are different DEBUG triggers.
+ If set to True, they will enable debug messages to be displayed. The
+ -q or --quiet option have no impact on debug messages.
+
+ DEBUG=False            # Debug smart meter communication
+ DEBUG1=False           # Debug parse routines
+ DEBUG2=False           # Debug selection routines
+ DEBUG3=False           # Debug output routines
+
+dsmm.py
+-------
+ This python program contains supporting routines for smread.py,
+ smrdback.py, smprog.py or Obislct.py. This is a description of the
+ different routines.
+
+ The file contains the user messages for different languages, making
+ it easier to localize/change the messages
+ For each language a table needs to be made as _xx_codes
+   xx = language ( initial version has nl and uk)
+
+ printstderr(mes, color)
+  Display a message to stderr. Color can be "red", "white", "green",
+  "yellow or "blue". If color is omitted it is "red" by default.
+
+ setdlang(lang)
+  will update the display language to the value lang. This will select
+  the right language table in dlm()
+
+ dlm(messc)
+  This routine is called to return the localised messages with
+  the code messc.
+
+
+RAW-log file
+------------
+The SML3 file will store the raw-data from smartmeter with option 2 in
+smrdback.py or option 4 of smread.py as it is displayed on the screen.
+
+SML-log file
+------------
+The SML file will hold requested selection output. It will store in order
+received from the smartmeter in with the following data format:
+
+00100;(150917112314S);10181;(002078.645*kWh);10182;(002759.295*kWh);0096140;
+(0002);10170;(02.073*kW);012421;(150917110000S)(01134.437*m3)
+
+OR if "-o" option was requested with smrdback.py or smread.py to
+the OBIS code is NOT included. This can save bytes in the log file and
+may support easier parsing, as long as you know what the data means.
+
+(150917112314S);(002078.645*kWh);(002759.295*kWh);(0002);(02.073*kW);
+(150917110000S)(01134.437*m3)
+
+The first entry is hard coded: Date-time-stamp from the meter.
+It has the format : YYMMDDhhmmssX
+ YY = year    (15 - 2015)
+ MM= month    (09 - september)
+ DD = day     (17)
+ hh = hour    (11)
+ mm = minutes (23)
+ ss = seconds (26)
+ X = not used (can be any character)
+
+
+################ Reference Material ##########################
+
+Netbeheer nederland:
+  P1 Companion Standaard, Dutch Smartmeter Requirements
+  P3 Companion Standaard, Dutch Smartmeter Requirements
+
+DLMS User Association:
+  COSEM interface classes and OBIS identification system
+
+Many online websites ( e.g. www.dlms.com)
+
+DLMS  = Device Language Message Specification
+COSEM = Companion Speciication for Entergy Metering
+OBIS  = Object Identification System

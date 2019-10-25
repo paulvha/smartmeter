@@ -1,0 +1,177 @@
+﻿                       Install smartmeter software      
+
+Initial version May 2017
+version 1.0 / october 2019 / paulvh
+- New onedrive used: https://github.com/abraunegg/onedrive
+- changed parameters
+
+The following description assumes the smartmeter programs are located in
+/home/pi/smartmeter. IF NOT replace to the installed directory.
+
+–----------------- All STEPS MUST BE PERFORMED AS SUPER USER ----------------
+                 ===============================================
+
+               –----------------- dependencies ----------------
+The correct working is dependent on:
+
+serial  : sudo easy_install pyserial
+
+For onedrive connection, follow the instructions in onedrive.txt
+
+               –----------------- Test connection ----------------
+
+Make sure to first read the hardware.txt for the correct connection between the
+smartmeter and the Raspberry Pi.  This is critical !!
+
+Once connected and software installed, BEFORE performing more setup actions,
+check the correct working with the following steps:
+
+    cd /home/pi/smartmeter
+
+    sudo python ./smread.py
+
+    If device is not /dev/ttyUSB0, add : -D device ( e.g. -D /dev/ttyUSB1)
+    If GPIO pin is NOT 26, add : -G pin (e.g. -G 12)
+
+    select option 3 <enter>
+
+The information is read from the meter. It should be readable and NO CRC error
+warning. It MIGHT fail the first time if you connected the hardware when the
+Raspberry was turned on, repeat with option 3. If it continues to have errors:
+check the hardware. If the information is displayed correctly, you can decide
+to redirect the output or make a print, that can be used in step 4 below.
+
+ONLY if the information is displayed correctly continue with the installation
+steps as described below.
+
+0. Make sure you are superuser or root
+
+1. cd /home/pi/smartmeter
+
+              –----------------- setup utilities ----------------
+
+2. Install utilities
+  The command will install smread, smrdback and obisslct in /usr/local/bin,
+  and perform some execution permissions and checks.
+
+  chmod +x setupsm.sh  (just in case permission got lost during copying)
+
+  ./setupsm.sh inst
+
+                –----------------- setup daemon ----------------
+
+3. To automatically start the gathering of data every minute (unless changed).
+
+  ./add_initd [-D device] [-G GPIOpin] [-r repeat] [-i interval]
+
+
+  This utility is expected to be only used during installation.
+  It will try to add information in /etc/init.d to start smrdback.py
+  correct after reboot.
+
+  The default values for the device (/dev/ttyUSB0), GPIOpin (26), repeat (0 =
+  endless), interval (1800) = 3 min can optionally be changed with the command line.
+
+
+             –--------------- setup saving logfiles ----------------
+
+4. Automatically save the logfiles on-line
+
+  This step can be done later or not done at all if you want to manually copy
+  the logfiles. Choose either OneDrive (4A) or local network share (4B)
+
+  4A. Save to OneDrive
+  It assumes you have onedrive installed (see onedrive.txt)
+
+  4A-1 Create a local directory /home/pi/OneDrive/smartmeter
+
+  4A-2 UPDATE CRONTAB
+   'crontab -e' will start the nano editor.
+
+   An entry like this at the bottom to start svlogfile_od every hour:
+   0 * * * *    /home/pi/smartmeter/svlogfile_od
+
+   An entry like this at the bottom to start svlogfile_od every morning at 7: (THIS IS THE BEST)
+   0 7 * * *    /home/pi/smartmeter/svlogfile_od
+
+   IF you use another directory then ~/OneDrive/smartmeter,e.g. ~/OneDrive/temp, add that in the crontab like:
+   0 * * * *    /home/pi/smartmeter/svlogfile_od  /temp
+
+   press "ctrl + o" to writeout, press enter for filename, ctrl + x' to exit
+
+  4B. Save to local network share
+
+   4B-1 Create destination NETWORK SHARE
+   The utility svlogfile will look for a network share that includes smartmeter'
+   in the name. It will try to mount all if not mounted yet. However if you want
+   to use a share that does not have 'smartmeter" in the name, add the search
+   argument to the crontab entry (below)
+
+   Setting up a share is a topic that is not part of the document as there is good information
+   on Internet how to handle that , including update to /etc/fstab.
+
+   4B-2 UPDATE CRONTAB
+   'crontab -e' will start the nano editor.
+
+   An entry like this will start svlogfile every hour:
+   0 * * * *    /home/pi/smartmeter/svlogfile
+
+   IF you have a share-name that needs different search argument, e.g. "rasp",
+   provide that like:
+   0 * * * *    /home/pi/smartmeter/svlogfile rasp
+
+   CAREFULL: MAKE NO TYPING ERROR AS CRON DOES NOT DISPLAY ERROR MESSAGES
+   press "ctrl + o" to writeout, press enter for filename, 'ctrl + x' to exit
+
+           –----------------- setup selection definition ----------------
+5. Define selection
+
+  Now is a good time to select the OBIS code you want in the log-file.
+  Every read will produce ~760 characters (all depending on your smartmeter).
+  By default the program reads every minute (although you can change that in
+  /etc/init.d with the options for smrdback – see program.txt), thus
+  generating ~1MB of data every day. A lot of data is not needed, e.g. serial
+  number does not change etc.
+
+  Use the output from the beginning with smread.py and the reference material
+  at the end of program.py or meter.txt to make the selection.
+
+  Set by default is:
+	1-0:1.7.0[ current energy usage
+	0-1:24.2.1[ Total received gas
+	1-0:1.8.1[ Total energy received tariff 1
+	1-0:2.8.1[ Total Energy returned tariff 1  ( e.g. in case of solar panels)
+	1-0:1.8.2[ Total energy received tariff 2
+	1-0:2.8.2[ Total Energy returned tariff 2  ( e.g. in case of solar panels)
+	1-0:21.7.0[ fase 1]
+	1-0:41.7.0[ fase 2]
+	1-0:61.7.0[ fase 3]
+
+  NOTE :  The OBIS code for meter timestamp (0-0:1.0.0) is hard coded.
+
+  This generates a good basis for analyses.
+  To change the selection:
+
+  obislct (as long as your PATH includes /usr/local/bin - by default)
+
+  OR:
+        cd /home/pi/smartmeter
+
+        python obislct.py
+
+  P.s. if you decide to this later, be reminded that a reboot is needed to make
+  that active.
+
+                          –----------------- setup final actions ----------------
+
+6. As last step to complete the installation reboot the system
+     reboot
+
+After reboot check the logs directory:
+ 1. The SML* file for the current month/year should update with the interval (default every minute).
+ 2. Check that errlog exist, and is empty. Otherwise look at content
+ 3. LastSave and cronlog should appear after the first cron-time is expired.
+            check content cronlog for errors or correct functioning
+            LastSave has standard content
+
+If you want to use any of the parameters or make update in the scripts, please see program.txt for details.

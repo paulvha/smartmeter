@@ -1,0 +1,87 @@
+
+Output of smartmeter            Description
+-------------------------------------------------------------------
+/XMX5LGBBFFB231185618           Identification
+
+1-3:0.2.8(40)               Version information P1 (DSMR 4.0)
+0-0:1.0.0(150916132610S)        Data-time stamp (YYMMDDhhmmX)
+0-0:96.1.1(4530303035303031353832363139393134) device number
+1-0:1.8.1(002073.726*kWh)       Total Energy received tariff 1
+1-0:2.8.1(000000.000*kWh)       Total Energy returned tariff 1  ( e.g. in case of solar panels)
+1-0:1.8.2(002746.885*kWh)       Total Energy geleverd tariff 2
+1-0:2.8.2(000000.000*kWh)       Total Energy returned tariff 2 ( e.g. in case of solar panels)
+0-0:96.14.0(0002)           Current tarifffor energy
+1-0:1.7.0(00.655*kW)            Current active usage for energy
+1-0:2.7.0(00.000*kW)            current active return for energy
+0-0:17.0.0(999.9*kW)            current maximum limit for energy
+0-0:96.3.10(1)              Status of energy meter (on/off/enabled)
+0-0:96.7.21(00004)          Number of powerdips
+0-0:96.7.9(00001)           Number of longer poweroutages
+1-0:99.97.0(1)(0-0:96.7.19)(150327105613W)(0000004689*s) timestamp of outage or dip
+1-0:32.32.0(00000)          Total powerdip phase 1
+1-0:52.32.0(00000)          Total powerdip phase 2
+1-0:72.32.0(00000)          Total powerdip phase 3
+1-0:32.36.0(00000)          Total powersurge (sudden increase) phase 1
+1-0:52.36.0(00000)          Total powersurge (sudden increase)phase 2
+1-0:72.36.0(00000)          Total powersurge (sudden increase)phase 3
+0-0:96.13.1()               User text code
+0-0:96.13.0()               user text message
+1-0:31.7.0(003*A)           Actual current usage phase 1
+1-0:51.7.0(000*A)           Actual current usagephase 2
+1-0:71.7.0(000*A)           Actual current usage phase 3
+1-0:21.7.0(00.622*kW)           Actual power usage phase 1
+1-0:41.7.0(00.015*kW)           Actual power usage phase 2
+1-0:61.7.0(00.017*kW)           Actual power usage phase 3
+1-0:22.7.0(00.000*kW)           Actual power returned phase 1
+1-0:42.7.0(00.000*kW)           Actual power returned phase 1
+1-0:62.7.0(00.000*kW)           Actual power returned  phase 1
+0-1:24.1.0(003)             Device type channel 1 ( 3=gas)
+0-1:96.1.0(4730303032333430313531303432353134) gasmeter serial number
+0-1:24.2.1(150916130000S)(01133.625*m3) date-stamp of collection + total gas usage
+0-1:24.4.0(1)               Status of gasmeter (on/off)
+!                   end of information
+
+
+For my dutch friends :
+
+Output van smartmeter           Beschrijving
+-------------------------------------------------------------------
+/XMX5LGBBFFB231186418           Identificatie
+
+1-3:0.2.8(40)               Versie informatie P1 (DSMR 4.0)
+0-0:1.0.0(150916132610S)        Data-time stamp (YYMMDDhhmmX)
+0-0:96.1.1(4530303035303031353832363139393134) device nummer
+1-0:1.8.1(002073.726*kWh)       Totaal Energy ontvangen tarief 1
+1-0:2.8.1(000000.000*kWh)       Totaal Energy terug geleverd tarief 1
+1-0:1.8.2(002746.885*kWh)       Totaal Energy geleverd tarief 2
+1-0:2.8.2(000000.000*kWh)       Totaal Energy terug geleverd tarief 2
+0-0:96.14.0(0002)           Huidig actief tarief
+1-0:1.7.0(00.655*kW)            Huidig actief verbruik
+1-0:2.7.0(00.000*kW)            Huidig actief teruglevering
+0-0:17.0.0(999.9*kW)            Huidig Maximaal mogelijk
+0-0:96.3.10(1)              Schakelstand meter (in/uit/enabled)
+0-0:96.7.21(00004)          Totaal aantal spanningsfouten
+0-0:96.7.9(00001)           Totaal aantal lange spanningsfouten
+1-0:99.97.0(1)(0-0:96.7.19)(150327105613W)(0000004689*s) tijdsstip fout
+1-0:32.32.0(00000)          Aantal spanningsdrop phase 1
+1-0:52.32.0(00000)          Aantal spanningsdrop phase 2
+1-0:72.32.0(00000)          Aantal spanningsdrop phase 3
+1-0:32.36.0(00000)          Aantal spanningverhoging phase 1
+1-0:52.36.0(00000)          Aantal spanningverhoging phase 2
+1-0:72.36.0(00000)          Aantal spanningverhoging phase 3
+0-0:96.13.1()               Gebruikers text code
+0-0:96.13.0()               Gebruikers text bericht
+1-0:31.7.0(003*A)           Huidig stroomverbruik phase 1
+1-0:51.7.0(000*A)           Huidig stroomverbruik phase 2
+1-0:71.7.0(000*A)           Huidig stroomverbruik phase 3
+1-0:21.7.0(00.622*kW)           Huidig vermogenverbruik phase 1
+1-0:41.7.0(00.015*kW)           Huidig vermogenverbruik phase 2
+1-0:61.7.0(00.017*kW)           Huidig vermogenverbruik phase 3
+1-0:22.7.0(00.000*kW)           Huidig vermogen teruglevering phase 1
+1-0:42.7.0(00.000*kW)           Huidig vermogen teruglevering phase 1
+1-0:62.7.0(00.000*kW)           Huidig vermogen teruglevering phase 1
+0-1:24.1.0(003)             Device type kanaal 1 ( 3=gas)
+0-1:96.1.0(4730303032333430313531303432353134) gasmeter nummer
+0-1:24.2.1(150916130000S)(01133.625*m3) Opnametijd + Totaal gasverbruik
+0-1:24.4.0(1)               Schakelstand Gasmeter (in/uit)
+!                   einde bericht

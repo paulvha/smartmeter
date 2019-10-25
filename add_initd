@@ -1,0 +1,200 @@
+#! /bin/bash
+
+#****************************************************************
+# update automatic start for Smartmeter background program
+# Version 2.0 / september 2015 / paulvha
+# Initial version
+#
+# Version 2.1 / January 2016 / paulvha
+# - added command line argument support for -D, -G, -i and -r
+#
+# Version 2.2 / January 2016 / paulvha
+# - added support for Domoticz (-O)
+#
+# Version 2.3 / February 2016 / paulvha
+# - added support domo_update()
+#
+# Version 2.4 / May 2017 / paulvha
+# - removed support for Domoticz
+# - included support for systemd startup
+# - changed default parameters
+#
+#  Needs to be run from the Smartmeter directory as ROOT
+#
+#****************************************************************
+
+_DEST_file="/etc/init.d/sm.start"
+_TMP_file="sm.start"
+_CUR_dir=`pwd`
+
+# default values for passing to smrdback
+# GPIO 26, 15 min = 60 x 15 = 900, Repeat is forever = 0
+Device="/dev/ttyUSB0"
+Gpio=26
+Interval=900
+Repeat=0
+
+
+disp_usage() {
+    echo "$0 [par]"
+    echo "optional parameters are :"
+    echo "For smrdback(): "
+    echo "  -D device  - Device to use if not $Device"
+    echo "  -G GPIO    - pin to raise RTS if not GPIO $Gpio"
+    echo "  -i 60      - interval in seconds between samples (default = $Interval sec)"
+    echo "  -r 0       - the number of samples to take ( 0 = default = endless )"
+    echo ""
+    echo "If more options are needed - adjust manually !!"
+    exit 1
+}
+
+# create start file.
+make_st_file()
+{
+    echo "#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          start smartmeter
+# Required-Start:    $all
+# Required-Stop:
+# Should-Start:
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Automatically start smartmeter on jessie
+# Description:       to install:
+#                    cp sm.start /etc/init.d
+#                    chmod +x /etc/init.d/sm.start
+#                    update-rc.d sm.start defaults
+### END INIT INFO
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+case \"\$1\" in
+  start|\"\")
+
+    # set directory
+    _SMDIR=$_CUR_dir
+    cd \$_SMDIR
+
+    # remove any pending files
+    rm -f ./logs/LogLock
+
+    # start process
+    /usr/bin/python \$_SMDIR/smrdback.py -q -o -D $Device -G $Gpio -i $Interval -r $Repeat 2>\$_SMDIR/logs/errlog &
+    ;;
+
+  stop)
+    # No-op
+    exit 0
+    ;;
+
+  *)
+    echo \"Usage: \$0 [start|stop]\" >&2
+    exit 3
+    ;;
+esac
+" > $_TMP_file
+}
+
+set_initd() {
+    # Move updated start file
+
+    echo "Update init.d with SmartMeter startup."
+    mv $_TMP_file $_DEST_file
+
+    if [ $? != 0 ];then
+        echo "Not able to make changes to $_DEST_file."
+        rm -f $_TMP_file
+        exit 1
+    fi
+
+    # set permissions on new file
+    echo "set right permissions to $_DEST_file"
+    chmod +x $_DEST_file
+
+    echo "Update systemd"
+    update-rc.d $_TMP_file defaults
+}
+
+# **************************************************************
+# ******************* START OF SCRIPT **************************
+# **************************************************************
+
+# check right start conditions
+
+if [ "$USER" != "root" ]; then
+    echo "You must be root. Use SUDO command to become root."
+    echo " "
+    disp_usage
+fi
+
+if [ -f ./logs ]; then
+    echo "You must be in the Smartmeter directory."
+    echo " "
+    disp_usage
+fi
+
+
+# check command line parameters
+
+re='^[0-9]+$'
+
+while [ "$1" != "" ]; do
+    case $1 in
+    -D | -d )   shift
+                Device=$1
+
+                if ! [ -e "$Device" ]; then
+                    echo "error: device $Device not found" >&2
+                    exit 1
+                fi
+                ;;
+    -G | -g )   shift
+                Gpio=$1
+
+                if ! [[ $Gpio =~ $re ]]; then
+                    echo "error: GPIO $Gpio not a number" >&2
+                    exit 1
+
+                elif [ $Gpio -gt 26 ]; then
+                    echo "error: GPIO pin $Gpio does not exist" >&2
+                    exit 1
+
+                elif [ $Gpio -lt 2 ]; then
+                    echo "error: GPIO pin $Gpio does not exist" >&2
+                    exit 1
+                fi
+                ;;
+    -I | -i )   shift
+                Interval=$1
+
+                if ! [[ $Interval =~ $re ]]; then
+                    echo "error: interval $Interval not a number" >&2
+                    exit 1
+                fi
+                ;;
+    -R | -r )   shift
+                Repeat=$1
+
+                if ! [[ $Repeat =~ $re ]]; then
+                    echo "error: repeat $Repeat not a number" >&2
+                    exit 1
+                fi
+                ;;
+    *)
+
+            echo "ERROR: Unknown option: $1"
+            disp_usage
+    esac
+    shift
+done
+
+# create the start file
+make_st_file
+
+# setup up init.d
+set_initd
+
+echo "Finished"
+echo "make sure to update crontab. See install.txt"
+
+exit 0

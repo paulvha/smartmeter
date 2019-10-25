@@ -1,0 +1,88 @@
+﻿                     smartmeter hardware      December 2015
+
+
+
+Each smartmeter has an P1 connector of the type RJ11. The smartmeter
+has a female socket that is accessible by the user. There might be a 
+small cover over it when not in use, but by definition it is not 
+behind a locked cover. Check the user manual of the meter.
+
+Layout P1 : 
+
+pin  signal name  Description
+1      +5V        Power Supply
+2     Request     Input
+3     Data GND    Ground
+4     N.C.        Not Connected
+5     Data        Output
+6     Power GND   Power Supply
+
+The Raspberry Pi can not work with 5V signal and it would cause hardware 
+damage. Also the data signal from the smartmeter is inverted 
+(SPACE "0" > 4V,  MARK "1" < 1V). A special cable is needed to connect. 
+Some on-line shops and stores sell these cables, In my case however, 
+I have made a small electronic circuit to convert the 5V to 3.3V
+and invert the signal. 
+
+  SmartMeter                                           Raspberry Pi
+
+                   ---------------------------------------- 1  +3.3V
+                   !                       !
+                   --                      --
+                   ! !  R2                 ! ! R1
+                   ! !                     ! !
+                   --                      --
+                   !                     c  !
+                   !    R3            ! /---!--------------10  Serial
+  data 5 ----------!--[!!!!!]---------!/
+                                    b !   T1
+                                      !\
+                                        \ e
+                                        !
+   GND 3 -------------------------------!------------------ 6  GND
+       
+       
+       
+   RTS 2 -------------------------------------------------- 7 GPIO4
+       
+   R1 = 10K
+   R2 = 6.8K
+   R3 = 1K
+   T1 = BC237 (or nearly any NPN) 
+      
+   
+NOTES :
+   On the 4-pin RJ11 that I have used the following signal & colours:
+   1	Not available
+   2	Black		RTS
+   3	Red		GND
+   4	Green		Not used
+   5	Yellow		Data
+   6	Not available
+   
+   Optional is to add a LED and resistor(1k) between RTS and ground, so 
+   the led will indicate that RTS has been raised.
+   
+   Try to keep the cable between the smartmeter short. Long cables 
+   might impact the signal quality and pick-up noise causing issues
+   during reading. During my tests a 15 meter cable was used and 
+   while that worked, there were occasionally reading issues.
+   
+SPECIAL notes:
+
+   A test has been done to use the Aruino ONE board as front-end to
+   read the meter using softwareserial.h. However that did not work 
+   stable on 115200 speed as it lost characters. It is a known
+   that 56K is nearly the maximum stable connection depending on the 
+   structure and number of instruction of the program has as it is
+   unbuffered SOFT-serial. 
+   Earlier Smartmeters used 9600 and thus it used to be an option.
+   A special circuit with a DIL relay was necessary to use the real
+   serial port on the Arduino, as the serial connection is hardwired 
+   to also be used for the USB communication. I decided however to connect
+   directly to the raspberry and integrate other domotica functions on
+   the same raspberry
+
+   While this hardwareworks safe and good, a change in hardware is begin 
+   considered to use opto-couplers to have galvanic separation between
+   smartmeter and Raspberry. It does need a very fast optocoupler however.
