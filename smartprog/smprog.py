@@ -53,7 +53,7 @@ from dsmm import *
 # set constants
 SAVEFILE = "./logs/SML3"        # file to save information (added with month/year)
 LOCKFILE = "./logs/LogLock"     # lock file during save
-OBISFILE = "./logs/ObisSelected"# File to hold requested OBIS codes
+OBISFILE = "./logs/ObisSelected"# file to hold requested OBIS codes
 RTSPIN = 26                     # default : GPIO 26, pin 37, Request to sent (RTS) naar Meter
 OUTDEL = ";"                    # set the output delimiter character in between fields
 

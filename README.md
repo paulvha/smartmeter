@@ -6,7 +6,7 @@ Utilities to read the Dutch Smartmeter with Raspberry Pi written in Python.
 
 These are all command-line utilities without graphical interface to allow for fast remote access and background usage.
 
-Typically the Raspberry would be close to the meter and accessed with SSH or Putty.
+Typically the Raspberry Pi would be close to the meter and accessed with SSH or Putty.
 
 While this version works good, development to extend and bug-fixing is still happening.
 
